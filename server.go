@@ -11,11 +11,11 @@ import (
 	// "gorm.io/gorm"
 
 	"os"
-	"time"
+	// "time"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
+	// "gorm.io/gorm/logger"
 	"github.com/joho/godotenv"
 )
 
@@ -25,6 +25,14 @@ func main() {
 	Connect()
 
 	db.AutoMigrate(&api_db.Student{})
+
+	db.AutoMigrate(&api_db.Customer{})
+	db.AutoMigrate(&api_db.Product{})
+	db.AutoMigrate(&api_db.Order{})
+	db.AutoMigrate(&api_db.OrderDetail{})
+	db.AutoMigrate(&api_db.CreateOrderRequest{})
+	db.AutoMigrate(&api_db.OrderProduct{})
+	
 
 	app.Get("/", api.Helloworld)
 	app.Get("/student", api.GetStudents)
@@ -43,6 +51,13 @@ func main() {
 	})
 	app.Delete("/rm-charactors/:id", func(c *fiber.Ctx) error {
 		return api_db.GraduateStudent(db, c)
+	})
+
+	app.Post("/register", func(c *fiber.Ctx) error {
+		return api_db.RegisterCustomer(db, c)
+	})
+	app.Post("/create-order", func(c *fiber.Ctx) error{
+		return api_db.NewOrder(db, c)
 	})
 
 	fmt.Println("Starting server")
@@ -68,19 +83,19 @@ func Connect() {
 
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Asia%%2FBangkok", dbUser, dbPassword, dbHost, dbPort, dbName)
 
-	// Set a custom logger for GORM
-	newLogger := logger.New(
-		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
-		logger.Config{
-			SlowThreshold: time.Second, // Slow SQL threshold
-			LogLevel:      logger.Info, // Log level
-			Colorful:      true,        // Enable color
-		},
-	)
+	// // Set a custom logger for GORM
+	// newLogger := logger.New(
+	// 	log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+	// 	logger.Config{
+	// 		SlowThreshold: time.Second, // Slow SQL threshold
+	// 		LogLevel:      logger.Info, // Log level
+	// 		Colorful:      true,        // Enable color
+	// 	},
+	// )
 
 	// Connect to mysql
 	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
-		Logger: newLogger,
+		// Logger: newLogger,
 	})
 	if err != nil {
 		log.Fatalf("Failed to connect to the database: %v", err)
