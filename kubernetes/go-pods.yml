@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pib-go-pods
+  labels:
+    app: pib-go
+spec:
+  containers:
+    - name: pib-go
+      image: pib21/firstgo-app:latest
