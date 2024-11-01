@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: pib-go-deployment
 spec:
-  replicas: 3  # number of pods
+  replicas: 2  # number of pods
   selector:
     matchLabels:
       app: pib-go
@@ -39,6 +39,15 @@ spec:
                   key: DB_NAME
           ports:
             - containerPort: 8080
+
+          # limit resource
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "250m"
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
 
 ---
 apiVersion: v1
