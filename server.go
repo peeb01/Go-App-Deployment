@@ -30,8 +30,8 @@ func main() {
 	db.AutoMigrate(&api_db.Product{})
 	db.AutoMigrate(&api_db.Order{})
 	db.AutoMigrate(&api_db.OrderDetail{})
-	db.AutoMigrate(&api_db.CreateOrderRequest{})
-	db.AutoMigrate(&api_db.OrderProduct{})
+	// db.AutoMigrate(&api_db.CreateOrderRequest{})
+	// db.AutoMigrate(&api_db.OrderProduct{})
 	
 
 	app.Get("/", api.Helloworld)
@@ -56,6 +56,19 @@ func main() {
 	app.Post("/register", func(c *fiber.Ctx) error {
 		return api_db.RegisterCustomer(db, c)
 	})
+	app.Get("/cnsmr", func(c *fiber.Ctx) error {
+		return api_db.GetCustomer(db, c)
+	})
+	app.Get("/product", func(c *fiber.Ctx) error {
+		return api_db.GetProduct(db, c)
+	})
+	app.Get("/order", func(c *fiber.Ctx) error {
+		return api_db.GetOrder(db, c)
+	})
+	app.Get("/order-detail", func(c *fiber.Ctx) error{
+		return api_db.GetOrderDetail(db, c)
+	})
+
 	app.Post("/create-order", func(c *fiber.Ctx) error{
 		return api_db.NewOrder(db, c)
 	})
