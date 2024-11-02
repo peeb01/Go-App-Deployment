@@ -42,9 +42,6 @@ spec:
 
           # limit resource
           resources:
-            requests:
-              memory: "64Mi"
-              cpu: "250m"
             limits:
               memory: "128Mi"
               cpu: "500m"
@@ -55,10 +52,10 @@ kind: Service
 metadata:
   name: go-service
 spec:
-  type: NodePort
+  type: LoadBalancer  # จะลองใช้ LoadBalancer แทน NodePort
   selector:
-    app: pib-go  # matchLabels in deployment
+    app: pib-go
   ports:
-    - port: 8080
-      targetPort: 8080
-      nodePort: 30003  # external port
+    - port: 8000         # Port ที่จะเปิดให้เข้าถึงจากข้างนอก
+      targetPort: 8080   # Port ที่ container ใช้รับ traffic / port ที่โปรแกรมใช้
+      # nodePort: 30003    # NodePort ใช้ไม่ได้เพราะ LoadBalancer เปิด port ออกข้างนอกอยู่แล้ว
