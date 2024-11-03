@@ -43,8 +43,8 @@ spec:
           # limit resource
           resources:
             limits:
-              memory: "128Mi"
-              cpu: "500m"
+              memory: "128Mi" # Ram
+              cpu: "500m" # Cores
 
 ---
 apiVersion: v1

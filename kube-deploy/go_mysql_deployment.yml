@@ -39,7 +39,6 @@ spec:
                 key: DB_PASSWORD
         ports:
           - containerPort: 3306
-
           
         volumeMounts:
           - name: mysql-go-app-storage
