@@ -15,10 +15,10 @@ spec:
       containers:
         - name: pib-go
           image: go-orm-app:latest
-          imagePullPolicy: IfNotPresent  # pull local image
+          imagePullPolicy: IfNotPresent  # pull local docker image
           env:
             - name: DB_HOST
-              value: godb-service  # ClusterIP service name from database
+              value: godb-service  # ClusterIP service name from database deployment
 
             - name: DB_PORT
               value: "3306"
@@ -57,5 +57,5 @@ spec:
     app: pib-go
   ports:
     - port: 8000         # Port ที่จะเปิดให้เข้าถึงจากข้างนอก
-      targetPort: 8080   # Port ที่ container ใช้รับ traffic / port ที่โปรแกรมใช้
+      targetPort: 8080   # Port ที่โปรแกรมใช้
       # nodePort: 30003    # NodePort ใช้ไม่ได้เพราะ LoadBalancer เปิด port ออกข้างนอกอยู่แล้ว
