@@ -40,6 +40,22 @@ spec:
         ports:
           - containerPort: 3306
 
+          
+        volumeMounts:
+          - name: mysql-go-app-storage
+            mountPath: /var/lib/mysql
+
+  volumeClaimTemplates:
+    - metadata:
+        name: mysql-go-app-storage
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 500Mi
+
+
 ---
 apiVersion: v1
 kind: Service
