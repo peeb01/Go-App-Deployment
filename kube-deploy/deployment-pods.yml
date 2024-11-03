@@ -18,7 +18,7 @@ spec:
           imagePullPolicy: IfNotPresent  # pull local image
           env:
             - name: DB_HOST
-              value: godb-service  # ClusterIP service name
+              value: godb-service  # ClusterIP service name from database
 
             - name: DB_PORT
               value: "3306"
