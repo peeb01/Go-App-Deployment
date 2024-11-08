@@ -1,9 +1,9 @@
 package api_db
 
 import (
-	"github.com/gofiber/fiber/v2"
+	"net/http"
+	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	// "fmt"
 )
 
 type Student struct {
@@ -13,66 +13,81 @@ type Student struct {
 	Lname  string `json:"lastname"`
 }
 
-func GetStudents(db *gorm.DB, c *fiber.Ctx) error {
-	var students []Student
-	if result := db.Find(&students); result.Error != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to fetch students",
-		})
-	}
-	return c.Status(fiber.StatusOK).JSON(students)
-}
-
-func GetStudent(db *gorm.DB, c *fiber.Ctx) error {
-	id := c.Params("id")
-	var student Student
-	if result := db.First(&student, id); result.Error != nil {
-		if result.Error == gorm.ErrRecordNotFound {
-			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"error": "Student not found",
+func GetStudents(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var students []Student
+		if result := db.Find(&students); result.Error != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to fetch students",
 			})
+			return
 		}
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to fetch student",
+		c.JSON(http.StatusOK, students)
+	}
+}
+
+func GetStudent(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+		var student Student
+		if result := db.First(&student, id); result.Error != nil {
+			if result.Error == gorm.ErrRecordNotFound {
+				c.JSON(http.StatusNotFound, gin.H{
+					"error": "Student not found",
+				})
+				return
+			}
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to fetch student",
+			})
+			return
+		}
+		c.JSON(http.StatusOK, student)
+	}
+}
+
+func NewStudent(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var students []Student
+
+		if err := c.ShouldBindJSON(&students); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Failed to parse request body",
+			})
+			return
+		}
+
+		for _, student := range students {
+			if result := db.Create(&student); result.Error != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"error": "Failed to create student",
+				})
+				return
+			}
+		}
+
+		c.JSON(http.StatusCreated, gin.H{
+			"message":  "Students added successfully",
+			"students": students,
 		})
 	}
-	return c.Status(fiber.StatusOK).JSON(student)
 }
 
-func NewStudent(db *gorm.DB, c *fiber.Ctx) error {
-    var students []Student
+func GraduateStudent(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id := c.Param("id")
 
-    if err := c.BodyParser(&students); err != nil {
-        return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-            "error": "Failed to parse request body",
-        })
-    }
+		if result := db.Delete(&Student{}, id); result.Error != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to graduate student",
+			})
+			return
+		}
 
-    for _, student := range students {
-        if result := db.Create(&student); result.Error != nil {
-            return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-                "error": "Failed to create student",
-            })
-        }
-    }
-
-    return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-        "message":  "Students added successfully",
-        "students": students,
-    })
-}
-
-func GraduateStudent(db *gorm.DB, c *fiber.Ctx) error {
-	id := c.Params("id")
-
-	if result := db.Delete(&Student{}, id); result.Error != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to graduate student",
-		})
+		c.String(http.StatusOK, "Student Graduated.")
 	}
-
-	return c.Status(fiber.StatusOK).SendString("Student Graduated.")
 }
+
 
 // var students []Student = []Student{
 // 	{ID: 1, Fname: "Mika", Lname: "Misono"},

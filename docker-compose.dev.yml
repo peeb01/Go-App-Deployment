@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  db:
+    container_name: dev-go-db
+    image: mysql:latest
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: "${dev_MYSQL_ROOT_PASSWORD}"
+      MYSQL_DATABASE: "${dev_db_name}"
+      MYSQL_USER: "${dev_db_user}"
+      MYSQL_PASSWORD: "${dev_db_password}"
+    ports:
+      - "3308:3306"
+    volumes:
+      - dev-goappapi_mysql_data:/var/lib/mysql
+
+  web:
+    container_name: dev-go-app
+    image: go-orm-app:latest
+    restart: unless-stopped
+    ports:
+      - "8080:8080"  # Fiber
+      - "8081:8081"  # Gin
+
+    environment:
+      DB_HOST: db
+      DB_PORT: "${dev_db_port}"
+      DB_USER: "${dev_db_user}"
+      DB_PASSWORD: "${dev_db_password}"
+      DB_NAME: "${dev_db_name}"
+    depends_on:
+      - db
+
+volumes:
+  goappapi_mysql_data:
+    name: devapi_mysql_data
+    # external: true

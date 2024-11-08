@@ -1,0 +1,37 @@
+# stages:
+#   - build
+#   - deploy_dev
+#   - deploy_prod
+
+# build:
+#   stage: build
+#   tags:
+#     - pib10
+#   environment: pib1
+#   script:
+#     - echo "Building the Go ORM app image with caching..."
+#     - docker build -t go-orm-app:latest .
+
+# deploy_dev:
+#   stage: deploy_dev
+#   tags:
+#     - nprunner
+#   environment: development
+#   script:
+#     - echo "Deploying application to development environment..."
+#     - docker-compose -f docker-compose.dev.yml up -d
+#     - echo "Application successfully deployed to development."
+#   only:
+#     - develop
+
+# deploy_prod:
+#   stage: deploy_prod
+#   tags:
+#     - nprunner
+#   environment: production
+#   script:
+#     - echo "Deploying application to production environment..."
+#     - docker-compose -f docker-compose.prod.yml up -d
+#     - echo "Application successfully deployed to production."
+#   only:
+#     - main

@@ -21,7 +21,8 @@ services:
     image: go-orm-app:latest
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "8080:8080"  # Fiber
+      - "8081:8081"  # Gin
     environment:
       DB_HOST: db
       DB_PORT: ${DB_PORT}
