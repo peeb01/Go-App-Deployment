@@ -40,27 +40,32 @@ func FiberGetStudent(db *gorm.DB, c *fiber.Ctx) error {
 }
 
 func FiberNewStudent(db *gorm.DB, c *fiber.Ctx) error {
-    var students []Student
 
-    if err := c.BodyParser(&students); err != nil {
+    var student Student
+
+    if err := c.BodyParser(&student); err != nil {
         return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
             "error": "Failed to parse request body",
         })
     }
-
-    for _, student := range students {
-        if result := db.Create(&student); result.Error != nil {
-            return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-                "error": "Failed to create student",
-            })
-        }
+	var existingStudent Student
+    if err := db.Where("fname = ? AND lname = ?", student.Fname, student.Lname).First(&existingStudent).Error; err == nil {
+        return c.Status(fiber.StatusConflict).JSON(fiber.Map{
+            "error": "Student already exists",
+        })
+    }
+    if result := db.Create(&student); result.Error != nil {
+        return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+            "error": "Failed to create student",
+        })
     }
 
     return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-        "message":  "Students added successfully",
-        "students": students,
+        "message": "Student added successfully",
+        "student": student,
     })
 }
+
 
 func FiberGraduateStudent(db *gorm.DB, c *fiber.Ctx) error {
 	id := c.Params("id")

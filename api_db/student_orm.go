@@ -8,7 +8,6 @@ import (
 
 type Student struct {
 	gorm.Model
-	ID     int    `json:"id"`
 	Fname  string `json:"firstname"`
 	Lname  string `json:"lastname"`
 }

@@ -5,43 +5,81 @@ import (
 	"log"
 	"project/api"
 	"project/api_db"
-
 	"github.com/gofiber/fiber/v2"
-	"github.com/gin-gonic/gin"
-	// "github.com/gofiber/fiber/v2/middleware/cors"
 	fiberlog "github.com/gofiber/fiber/v2/middleware/logger"
 	"gorm.io/gorm"
 
 	"os"
-	"time"
-
 	"gorm.io/driver/mysql"
-	// "gorm.io/gorm"
-	"gorm.io/gorm/logger"
 	"github.com/joho/godotenv"
 )
 
 func main() {
-	fiberApp := fiber.New()
-	ginApp := gin.Default()
-	
-	Connect()
+	fiber_run()
+}
 
+
+
+// -------------------------------------------------------------------------------------------------------
+
+var db *gorm.DB
+func Connect() {
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatalf("Error loading .env file: %v", err)
+	}
+
+	dbUser := os.Getenv("DB_USER")
+	dbPassword := os.Getenv("DB_PASSWORD")
+	dbHost := os.Getenv("DB_HOST")
+	dbPort := os.Getenv("DB_PORT")
+	dbName := os.Getenv("DB_NAME")
+	
+	// fmt.Println("-----Connecte------")
+	// fmt.Println("dbUser: ", dbUser)
+	// fmt.Println("dbPassword: ", dbPassword)
+	// fmt.Println("dbHost: ", dbHost)
+	// fmt.Println("dbPort: ", dbPort)
+	// fmt.Println("dbName: ", dbName)
+
+	
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", dbUser, dbPassword, dbHost, dbPort, dbName)
+
+	// newLogger := logger.New(
+	// 	log.New(os.Stdout, "\r\n", log.LstdFlags),
+	// 	logger.Config{
+	// 		SlowThreshold: time.Second,
+	// 		LogLevel:      logger.Info, 
+	// 		Colorful:      true,        
+	// 	},
+	// )
+
+	// Connect to MySQL using GORM
+	db, err = gorm.Open(mysql.Open(dsn))
+
+	if err != nil {
+		log.Fatalf("Failed to connect to the database: %v", err)
+	}
+
+	fmt.Println("Database connection established")
+}
+
+func fiber_run(){
+	fiberApp := fiber.New()
 	fiberApp.Use(fiberlog.New(fiberlog.Config{
 		Format:     "[${time}] ${status} - ${method} ${path} ${latency}\n",
 		TimeFormat: "2006-01-02 15:04:05",
 		TimeZone:   "Local",
 	}))
 
+	Connect()
+	
 	db.AutoMigrate(&api_db.Student{})
 
 	db.AutoMigrate(&api_db.Customer{})
 	db.AutoMigrate(&api_db.Product{})
 	db.AutoMigrate(&api_db.Order{})
 	db.AutoMigrate(&api_db.OrderDetail{})
-	// db.AutoMigrate(&api_db.CreateOrderRequest{})
-	// db.AutoMigrate(&api_db.OrderProduct{})
-	
 	fiberApp.Get("/", api.Helloworld)
 	fiberApp.Get("/student", api.GetStudents)
 	fiberApp.Get("/student/:id", api.GetStudent)
@@ -68,62 +106,24 @@ func main() {
 		return api_db.NewOrder(db, c)
 	})
 
-	// Set up Gin routes
-	ginApp.GET("/gin/student", api_db.GetStudents(db))
-	ginApp.GET("/gin/student/:id", api_db.GetStudent(db))
-	ginApp.POST("/gin/new-student", api_db.NewStudent(db))
-	ginApp.DELETE("/gin/student-graduated/:id", api_db.GraduateStudent(db))
-
-
-	fmt.Println("Starting server")
-
-	go func() {
-		if err := fiberApp.Listen(":8080"); err != nil {
-			log.Fatalf("Fiber server failed to start: %v", err)
-		}
-	}()
-
-
-	go func() {
-		if err := ginApp.Run(":8081"); err != nil {
-			log.Fatalf("Gin server failed to start: %v", err)
-		}
-	}()
-
-	select {}
-}
-var db *gorm.DB
-
-func Connect() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatalf("Error loading .env file")
-	}
-
-	dbUser := os.Getenv("dev_db_user")	// get from variable, var name in gitlab
-	dbPassword := os.Getenv("dev_db_password")
-	dbHost := os.Getenv("dev_db_host")
-	dbPort := os.Getenv("dev_db_port")
-	dbName := os.Getenv("dev_db_name")
-
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Asia%%2FBangkok", dbUser, dbPassword, dbHost, dbPort, dbName)
-
-	// Set a custom logger for GORM
-	newLogger := logger.New(
-		log.New(os.Stdout, "\r\n", log.LstdFlags),
-		logger.Config{
-			SlowThreshold: time.Second, 
-			LogLevel:      logger.Info, 
-			Colorful:      true,        
-		},
-	)
-
-	// Connect to mysql
-	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
-		Logger: newLogger,
+	fiberApp.Get("/charactor", func(c *fiber.Ctx) error{
+		return api_db.FiberGetStudents(db, c)
 	})
-	if err != nil {
-		log.Fatalf("Failed to connect to the database: %v", err)
+	fiberApp.Get("/charactor/:id", func(c *fiber.Ctx) error{
+		return api_db.FiberGetStudent(db, c)
+	})
+	fiberApp.Post("/new-charactor", func(c *fiber.Ctx) error{
+		return api_db.FiberNewStudent(db, c)
+	})
+	fiberApp.Delete("/finished-charactor", func(c *fiber.Ctx) error{
+		return api_db.FiberGraduateStudent(db, c)
+	})
+
+
+	fmt.Println("Starting server...")
+
+	if err := fiberApp.Listen(":8080"); err != nil {
+		log.Fatalf("Fiber server failed to start: %v", err)
 	}
-	fmt.Println("Database connection established")
+
 }

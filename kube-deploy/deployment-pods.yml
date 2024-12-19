@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: pib-go
-          image: go-orm-app:latest
+          image: npib/go-orm-app:latest
           imagePullPolicy: IfNotPresent  # pull local docker image
           env:
             - name: DB_HOST
